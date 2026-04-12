@@ -97,3 +97,37 @@ Behavior:
 - `run`: one proxy for the whole scraper run.
 - `query`: rotate before each query.
 - `bbox`: rotate before each bbox (falls back to `query` when not in grid mode).
+
+`ssh root@178.104.56.95`
+
+`sudo apt update`
+`sudo apt install -y git`
+`cd ~`
+# install docker
+`sudo apt-get install -y ca-certificates curl`
+`sudo install -m 0755 -d /etc/apt/keyrings`
+`sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc`
+`sudo chmod a+r /etc/apt/keyrings/docker.asc`
+`echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null`
+If VERSION_CODENAME is empty on your image, check with cat /etc/os-release and replace it manually (e.g. bookworm, trixie).
+`sudo apt-get update`
+`sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin`
+[TEST] `sudo docker run --rm hello-world`
+`git clone https://github.com/stepup-fitness/stepup-trainer-scraping.git`
+`cd stepup-trainer-scraping`
+
+`docker build -t trainer-scraper .`
+`docker run -d -v "$(pwd):/app" trainer-scraper --headless --countries "Belgium" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bbox "50.808538,2.532349,51.369208,3.383789" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output Belgium/leads_bbox_1.csv`

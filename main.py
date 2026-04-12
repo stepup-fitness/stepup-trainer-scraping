@@ -210,8 +210,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--headless",
-        action="store_true",
-        help="Run browser in headless mode.",
+        action=argparse.BooleanOptionalAction,
+        default=os.environ.get("DISPLAY") is None,
+        help=(
+            "Run browser in headless mode (default: headless when DISPLAY is unset, e.g. SSH servers). "
+            "Use --no-headless for a visible browser on your desktop."
+        ),
     )
     parser.add_argument(
         "--output",
