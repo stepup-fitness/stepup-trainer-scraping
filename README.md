@@ -117,10 +117,10 @@ If VERSION_CODENAME is empty on your image, check with cat /etc/os-release and r
 `cd stepup-trainer-scraping`
 
 `docker build -t trainer-scraper .`
-`docker run -d -v "$(pwd):/app" trainer-scraper --headless --countries "Belgium" \
+`docker run -d -v "$(pwd):/app" trainer-scraper --countries "California" \
   --keywords "Personal trainer" \
   --grid-mode \
-  --bbox "50.808538,2.532349,51.369208,3.383789" \
+  --bboxes "38.950865,-124.541016,41.992160,-120.025635;38.324420,-123.706055,38.985033,-119.696045;37.169072,-123.112793,38.337348,-118.157959;35.817813,-122.398682,37.186579,-116.740723;34.443159,-121.398926,35.799994,-115.532227;34.039005,-119.273071,34.361576,-117.333984;33.302986,-118.454590,33.988918,-117.410889;32.551444,-117.246094,34.284453,-114.609375" \
   --initial-cell-km 15 \
   --min-cell-km 2 \
   --dead-zone-max 20 \
@@ -130,4 +130,4 @@ If VERSION_CODENAME is empty on your image, check with cat /etc/os-release and r
   --max-grid-depth 3 \
   --max-results-per-query 120 \
   --skip-email-crawl \
-  --output Belgium/leads_bbox_1.csv`
+  --output California/leads.csv`
