@@ -6,7 +6,7 @@ import random
 import re
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 import os
 from urllib.parse import quote_plus, unquote, urlparse
@@ -1139,10 +1139,40 @@ def main() -> None:
                         )
                         is_last_bbox = bbox_idx == len(bboxes)
                         if not is_last_bbox:
-                            delay_seconds = randomized_sleep(min_seconds=60, max_seconds=90, dont_start=True)
+                            now_local = datetime.now()
+                            is_evening_or_night = now_local.hour >= 18 or now_local.hour < 6
+                            if is_evening_or_night:
+                                # Overnight: resume next bbox in a controlled morning window.
+                                morning_start = now_local.replace(
+                                    hour=8, minute=30, second=0, microsecond=0
+                                )
+                                if now_local.hour >= 18:
+                                    morning_start += timedelta(days=1)
+                                morning_end = morning_start.replace(hour=9, minute=0)
+                                resume_at = morning_start + timedelta(
+                                    seconds=random.uniform(
+                                        0, (morning_end - morning_start).total_seconds()
+                                    )
+                                )
+                                delay_seconds = max(0.0, (resume_at - now_local).total_seconds())
+                                delay_reason = "evening/night"
+                            else:
+                                delay_seconds = randomized_sleep(
+                                    min_seconds=60 * 60,
+                                    max_seconds=90 * 60,
+                                    dont_start=True,
+                                )
+                                delay_reason = "daytime"
+                            resume_suffix = (
+                                f"resume_at={resume_at.strftime('%Y-%m-%d %H:%M')} "
+                                if is_evening_or_night
+                                else ""
+                            )
                             log_message(
                                 log_file,
                                 "[INFO] Waiting between bboxes: "
+                                f"window={delay_reason} local_time={now_local.strftime('%H:%M')} "
+                                f"{resume_suffix}"
                                 f"{(delay_seconds / 60.0):.2f} min "
                                 f"({delay_seconds:.0f} sec)"
                             )

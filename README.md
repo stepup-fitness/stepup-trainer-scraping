@@ -132,7 +132,7 @@ If VERSION_CODENAME is empty on your image, check with cat /etc/os-release and r
   --skip-email-crawl \
   --output results/California/leads.csv`
 
-# To Download result on pc
+# To Download result on pc (don't connect with ssh)
 
 cd aws_env/stepup/stepup-trainer-scraping
 scp root@178.104.56.95:/root/stepup-12-04-2026-20-46/results/California/leads_bbox_1.csv .
