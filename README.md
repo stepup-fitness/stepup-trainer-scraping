@@ -45,7 +45,7 @@ python3 main.py \
   --max-grid-depth 3 \
   --max-results-per-query 120 \
   --skip-email-crawl \
-  --output Belgium/leads_bbox_1.csv
+  --output results/Belgium/leads_bbox_1.csv
 
 # Multi-bbox run with delay between each bbox
 python3 main.py \
@@ -63,10 +63,10 @@ python3 main.py \
   --max-grid-depth 3 \
   --max-results-per-query 120 \
   --skip-email-crawl \
-  --log-file Belgium/leads.csv.log \
-  --output Belgium/leads.csv
+  --log-file results/Belgium/leads.csv.log \
+  --output results/Belgium/leads.csv
 
-With multiple bboxes, leads go to separate files: `Belgium/leads_bbox_1.csv`, `Belgium/leads_bbox_2.csv`, … (same directory and extension as `--output`). Default checkpoint per file is `<that_csv>.checkpoint.jsonl`. If you scrape several countries in one run with the same `--output` base, bbox indices repeat per country—use a different `--output` base per country (e.g. `Belgium/leads.csv` vs `France/leads.csv`).
+With multiple bboxes, leads go to separate files: `results/Belgium/leads_bbox_1.csv`, `results/Belgium/leads_bbox_2.csv`, … (same directory and extension as `--output`). Default checkpoint per file is `<that_csv>.checkpoint.jsonl`. If you scrape several countries in one run with the same `--output` base, bbox indices repeat per country—use a different `--output` base per country (e.g. `results/Belgium/leads.csv` vs `results/France/leads.csv`).
 
 # Resume after interruption from saved checkpoint (appends to existing CSV)
 python3 main.py \
@@ -75,8 +75,8 @@ python3 main.py \
   --grid-mode \
   --bboxes "50.808538,2.532349,51.369208,3.383789;50.504693,3.298645,51.237847,4.086914" \
   --resume \
-  --log-file Belgium/leads.csv.log \
-  --output Belgium/leads.csv
+  --log-file results/Belgium/leads.csv.log \
+  --output results/Belgium/leads.csv
 
 ## Proxy rotation (for Hetzner / datacenter IPs)
 
@@ -98,7 +98,7 @@ Behavior:
 - `query`: rotate before each query.
 - `bbox`: rotate before each bbox (falls back to `query` when not in grid mode).
 
-`ssh root@178.104.56.95`
+`ssh root@178.104.56.95` Nuremberg
 
 `sudo apt update`
 `sudo apt install -y git`
@@ -130,4 +130,9 @@ If VERSION_CODENAME is empty on your image, check with cat /etc/os-release and r
   --max-grid-depth 3 \
   --max-results-per-query 120 \
   --skip-email-crawl \
-  --output California/leads.csv`
+  --output results/California/leads.csv`
+
+# To Download result on pc
+
+cd aws_env/stepup/stepup-trainer-scraping
+scp root@178.104.56.95:/root/stepup-12-04-2026-20-46/results/California/leads_bbox_1.csv .

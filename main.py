@@ -110,8 +110,11 @@ class GridCell:
     depth: int
 
 
-def randomized_sleep(min_seconds: float = 0.8, max_seconds: float = 2.8) -> None:
-    time.sleep(random.uniform(min_seconds, max_seconds))
+def randomized_sleep(min_seconds: float = 0.8, max_seconds: float = 2.8, dont_start: bool = False) -> float:
+    delay = random.uniform(min_seconds, max_seconds)
+    if not dont_start:
+        time.sleep(delay)
+    return delay
 
 
 def parse_proxy_url(proxy_url: str) -> dict:
@@ -352,7 +355,7 @@ def output_path_for_grid_bbox(base_output: str, bbox_index: int) -> str:
     directory, filename = os.path.split(base_output)
     stem, ext = os.path.splitext(filename)
     new_filename = f"{stem}_bbox_{bbox_index}{ext}"
-    return os.path.join("results", directory, new_filename) if directory else new_filename
+    return os.path.join(directory, new_filename) if directory else new_filename
 
 
 def grid_bbox_output_paths(base_output: str, num_bboxes: int) -> List[str]:
@@ -1136,7 +1139,7 @@ def main() -> None:
                         )
                         is_last_bbox = bbox_idx == len(bboxes)
                         if not is_last_bbox:
-                            delay_seconds = randomized_sleep(min_seconds=60, max_seconds=90)
+                            delay_seconds = randomized_sleep(min_seconds=60, max_seconds=90, dont_start=True)
                             log_message(
                                 log_file,
                                 "[INFO] Waiting between bboxes: "
