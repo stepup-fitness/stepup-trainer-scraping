@@ -113,14 +113,14 @@ If VERSION_CODENAME is empty on your image, check with cat /etc/os-release and r
 `sudo apt-get update`
 `sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin`
 [TEST] `sudo docker run --rm hello-world`
-`git clone https://github.com/stepup-fitness/stepup-trainer-scraping.git`
+`git clone https://github.com/stepup-fitness/stepup-trainer-scraping.git new-folder-name`
 `cd stepup-trainer-scraping`
 
 `docker build -t trainer-scraper .`
 `docker run -d -v "$(pwd):/app" trainer-scraper --countries "California" \
   --keywords "Personal trainer" \
   --grid-mode \
-  --bboxes "38.950865,-124.541016,41.992160,-120.025635;38.324420,-123.706055,38.985033,-119.696045;37.169072,-123.112793,38.337348,-118.157959;35.817813,-122.398682,37.186579,-116.740723;34.443159,-121.398926,35.799994,-115.532227;34.039005,-119.273071,34.361576,-117.333984;33.302986,-118.454590,33.988918,-117.410889;32.551444,-117.246094,34.284453,-114.609375" \
+  --bboxes "-123.706055,38.985033,-119.696045;37.169072,-123.112793,38.337348,-118.157959;35.817813,-122.398682,37.186579,-116.740723;34.443159,-121.398926,35.799994,-115.532227;34.039005,-119.273071,34.361576,-117.333984;33.302986,-118.454590,33.988918,-117.410889;32.551444,-117.246094,34.284453,-114.609375" \
   --initial-cell-km 15 \
   --min-cell-km 2 \
   --dead-zone-max 20 \

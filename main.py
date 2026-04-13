@@ -87,6 +87,14 @@ COUNTRY_ALIASES = {
     "austria": {"austria", "autriche", "autrichien", "autrichienne"}
 }
 
+# html classes
+RESULT_CARD_CLASS="div.bfdHYd"
+RESULT_CLICKABLE_CARD_CLASS="a.hfpxzc"
+RESULT_TITLE_CLASS="div.qBF1Pd"
+RESULT_PERSONAL_TRAINER_CLASS="div.W4Efsd"
+RESULT_PHONE_CLASS="span.UsdlK"
+RESULT_WEBSITE_CLASS="a.lcr4fd"
+RESULT_ADDRESS_CLASS="div.Io6YTe"
 
 @dataclass
 class TrainerLead:
@@ -611,7 +619,7 @@ def extract_phone_text(page) -> str:
     return ""
 def extract_phone_text_v2(card) -> str:
     # Google Maps cards usually contain phone in "button[data-item-id*=phone]".
-    phone_button = card.locator('span.UsdlK').first
+    phone_button = card.locator(RESULT_PHONE_CLASS).first
     if phone_button.count() > 0:
         return clean_text(phone_button.inner_text(timeout=1500))
     return ""
@@ -622,7 +630,7 @@ def extract_website(page) -> str:
         return clean_text(href)
     return ""
 def extract_website_v2(card) -> str:
-    site_link = card.locator('a.lcr4fd').first
+    site_link = card.locator(RESULT_WEBSITE_CLASS).first
     if site_link.count() > 0:
         href = site_link.get_attribute("href", timeout=1500)
         return clean_text(href)
@@ -634,8 +642,8 @@ def extract_address(card) -> str:
     return ""
 def extract_address_from_page(page) -> str:
     address_button = page.locator('button[data-item-id*="address"]').first
-    if address_button.count() > 0 and address_button.locator('div.Io6YTe').first.count() > 0:
-        return clean_text(address_button.locator('div.Io6YTe').first.inner_text(timeout=1500))
+    if address_button.count() > 0 and address_button.locator(RESULT_ADDRESS_CLASS).first.count() > 0:
+        return clean_text(address_button.locator(RESULT_ADDRESS_CLASS).first.inner_text(timeout=1500))
     return ""
 def is_in_target_country(country: str, address: str, maps_url: str) -> bool:
     country_lower = country.strip().lower()
@@ -691,8 +699,8 @@ def collect_listings(
 
     scroll_results_feed(page)
     page.set_default_timeout(random.randint(15_000, 30_000))
-    cards = page.locator('div.bfdHYd')
-    clickable_cards = page.locator('a.hfpxzc')
+    cards = page.locator(RESULT_CARD_CLASS)
+    clickable_cards = page.locator(RESULT_CLICKABLE_CARD_CLASS)
     card_count = cards.count()
     #to_process = min(card_count, max_results)
 
@@ -702,12 +710,12 @@ def collect_listings(
             clickable_card = clickable_cards.nth(idx)
 
             # Read the list-card title first so we can skip duplicates without clicking.
-            title = clean_text(card.locator('div.qBF1Pd').first.inner_text(timeout=2500))
+            title = clean_text(card.locator(RESULT_TITLE_CLASS).first.inner_text(timeout=2500))
             if not title or title in seen_names:
                 continue
 
             # check if the result is a Personal Trainer. Get the second last div.W4Efsd
-            personal_trainer = card.locator('div.W4Efsd').nth(-2).locator('span').first.locator('span').first.inner_text(timeout=2500)
+            personal_trainer = card.locator(RESULT_PERSONAL_TRAINER_CLASS).nth(-2).locator('span').first.locator('span').first.inner_text(timeout=2500)
             if personal_trainer and not 'personal trainer' in personal_trainer.lower():
                 print(f"[INFO] Not a Personal Trainer: {personal_trainer}")
                 continue
@@ -798,7 +806,7 @@ def collect_listings_with_dedupe(
 
 def estimate_result_count(page) -> int:
     scroll_results_feed(page, rounds=18)
-    cards = page.locator('div.bfdHYd') #a.hfpxzc
+    cards = page.locator(RESULT_CARD_CLASS)
     return cards.count()
 
 
