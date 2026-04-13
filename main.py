@@ -16,11 +16,12 @@ from playwright.sync_api import sync_playwright
 
 
 EMAIL_REGEX = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
-
 COUNTRY_ALIASES = {
     "california": {"california", "californien", "californienne", "californien"},
     "oregon": {"oregon", "oreganois", "oreganoise", "oregonien"},
     "washington": {"washington", "washingtonais", "washingtonaise", "washingtonien"},
+    "alaska": {"alaska", "alaskais", "alaskaise", "alaskaien"},
+    "hawaii": {"hawaii", "hawaiiis", "hawaiiise", "hawaiiien"},
     "montana": {"montana", "montanais", "montanaise", "montanaien"},
     "idaho": {"idaho", "idahois", "idahoise", "idahoien"},
     "nevada": {"nevada", "nevadais", "nevadaise", "nevadaien"},
