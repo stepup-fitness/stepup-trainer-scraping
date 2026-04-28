@@ -7,4 +7,4 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY . /app
 
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["python", "extract_contact_openai.py"]

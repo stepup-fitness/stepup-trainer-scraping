@@ -693,3 +693,9 @@ FILTER(leads_bbox_26!A2:Z;leads_bbox_26!A2:A<>"")
 VERO
 )
 }`
+
+
+# to upload
+scp ./results/Italy/consolidated_leads.csv root@178.104.201.243:/root/stepup-scraping/results/consolidated/Italy
+
+docker run -d -v "$(pwd):/app" trainer-scraper --input-csv="results/consolidated/Italy/consolidated_leads.csv" --api-key=""
