@@ -489,7 +489,6 @@ def main() -> None:
         processed_count = 0
         success_count = 0
 
-        count = 0
         for row in reader:
             processed_count += 1
             site_url = (row.get(args.url_column) or "").strip()
@@ -627,9 +626,6 @@ def main() -> None:
                     f"contacts={len(row['contacts'])}",
                 )
             jitter_sleep(base_delay, base_delay + 1.3)
-            count += 1
-            if count > 20:
-                break
             
         if wrote_any_row:
             json_out.write("\n")
