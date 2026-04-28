@@ -29,7 +29,7 @@ COUNTRY_ALIASES = {
     "utah": {"utah", "utahis", "utahise", "utahien"},
     "wyoming": {"wyoming", "wyomingis", "wyomingise", "wyomingien"},
     "colorado": {"colorado", "coloradois", "coloradoise", "coloradoien"},
-    "new mexico": {"new mexico", "new mexicois", "new mexicoise", "new mexicien"},
+    "new mexico": {"new mexico", "nm", "new mexicois", "new mexicoise", "new mexicien"},
     "texas": {"texas", "texasais", "texasaise", "texasien"},
     "oklahoma": {"oklahoma", "oklahomais", "oklahomaise", "oklahomaien"},
     "kansas": {"kansas", "kansasis", "kansasise", "kansasien"},
