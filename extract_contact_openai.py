@@ -77,20 +77,31 @@ def fetch_website_text(url: str, timeout_seconds: int, max_chars: int) -> str:
     return text[:max_chars]
 
 
-def build_prompt(site_url: str, site_text: str) -> str:
+def build_prompt(site_url: str, site_text: str, known_phone: str = "") -> str:
+    known_phone_clean = known_phone.replace(" ", "").strip()
+    known_phone_block = (
+        f"Known CSV phone (already stored): {known_phone_clean}\n"
+        if known_phone_clean
+        else "Known CSV phone (already stored): none\n"
+    )
     return (
         "You extract contact details from webpage text.\n"
         "Call the provided function with extracted values.\n"
         "Rules:\n"
         "- Classify the site as personal trainer/PT studio or not.\n"
         "- Use classification='not_personal_trainer_or_pt_studio' when the site is not a personal trainer or PT studio website.\n"
-        "- If classification='not_personal_trainer_or_pt_studio', emails and phones must both be empty lists.\n"
-        "- Return all plausible business emails and phones.\n"
-        "- If no email exists, return an empty emails list.\n"
-        "- If no phone exists, return an empty phones list.\n"
+        "- If classification='not_personal_trainer_or_pt_studio', contacts must be an empty list.\n"
+        "- Return contacts as: contacts=[{\"name\":\"\", \"email\":\"\", \"phone\":\"\"}].\n"
+        "- Each contact object must contain keys: name, email, phone.\n"
+        "- Return all plausible business contacts.\n"
+        "- If one value is unknown for a contact, keep that field as an empty string.\n"
+        "- If a contact phone matches the known CSV phone, do not return that contact (to avoid duplicates).\n"
         "- Prefer business contact details over unrelated ones.\n"
+        "- Normalize values when possible.\n"
+        "- Deduplicate equivalent contacts.\n"
         "- Return normalized values when possible.\n\n"
         f"Website URL: {site_url}\n"
+        f"{known_phone_block}"
         f"Website visible text:\n{site_text}"
     )
 
@@ -105,6 +116,54 @@ def dedupe_keep_order(values: list[str]) -> list[str]:
         seen.add(key)
         out.append(value)
     return out
+
+
+def canonical_phone(phone: str, country: str = "") -> str:
+    raw = (phone or "").strip()
+    if not raw:
+        return ""
+    compact = re.sub(r"[^\d+]", "", raw)
+    if compact.startswith("00"):
+        compact = "+" + compact[2:]
+    if compact.startswith("+"):
+        return "+" + re.sub(r"\D", "", compact[1:])
+
+    digits = re.sub(r"\D", "", compact)
+    if not digits:
+        return ""
+
+    country_lc = (country or "").strip().lower()
+    if country_lc == "switzerland":
+        if digits.startswith("0") and len(digits) >= 9:
+            return f"+41{digits[1:]}"
+        if digits.startswith("41"):
+            return f"+{digits}"
+    return digits
+
+
+def dedupe_contacts_by_phone_email(contacts: list[dict], country: str = "") -> list[dict]:
+    merged: dict[tuple[str, str], dict] = {}
+    order: list[tuple[str, str]] = []
+    for c in contacts:
+        name = (c.get("name") or "").strip()
+        email = (c.get("email") or "").strip()
+        phone = (c.get("phone") or "").strip()
+        c_phone = canonical_phone(phone, country=country)
+        key = (c_phone, email.lower())
+        if key == ("", ""):
+            key = ("", name.lower())
+        if key not in merged:
+            merged[key] = {"name": name, "email": email, "phone": c_phone or phone}
+            order.append(key)
+            continue
+        existing = merged[key]
+        if not existing["name"] and name:
+            existing["name"] = name
+        if not existing["email"] and email:
+            existing["email"] = email
+        if not existing["phone"] and (c_phone or phone):
+            existing["phone"] = c_phone or phone
+    return [merged[k] for k in order]
 
 
 def normalize_str_list(value) -> list[str]:
@@ -129,8 +188,30 @@ def normalize_contact_object(payload: dict) -> dict:
     if not isinstance(payload, dict):
         raise ValueError("Function arguments are not a JSON object.")
 
-    emails = normalize_str_list(payload.get("emails"))
-    phones = normalize_str_list(payload.get("phones"))
+    raw_contacts = payload.get("contacts")
+    if raw_contacts is None:
+        raw_contacts = []
+    if not isinstance(raw_contacts, list):
+        raw_contacts = []
+
+    contacts: list[dict[str, str]] = []
+    seen_keys: set[str] = set()
+    for item in raw_contacts:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name", "")).strip()
+        email = str(item.get("email", "")).strip()
+        phone = str(item.get("phone", "")).strip()
+        dedupe_key = (
+            name.lower(),
+            email.lower(),
+            re.sub(r"\s+", "", phone),
+        )
+        if dedupe_key in seen_keys:
+            continue
+        seen_keys.add(dedupe_key)
+        contacts.append({"name": name, "email": email, "phone": phone})
+
     classification = str(payload.get("classification", "")).strip()
     allowed = {
         "personal_trainer_or_pt_studio",
@@ -139,13 +220,11 @@ def normalize_contact_object(payload: dict) -> dict:
     if classification not in allowed:
         classification = "not_personal_trainer_or_pt_studio"
     if classification == "not_personal_trainer_or_pt_studio":
-        emails = []
-        phones = []
+        contacts = []
 
     return {
         "classification": classification,
-        "emails": emails,
-        "phones": phones,
+        "contacts": contacts,
     }
 
 
@@ -206,16 +285,21 @@ def call_openai_responses_api(
                                 "not_personal_trainer_or_pt_studio",
                             ],
                         },
-                        "emails": {
+                        "contacts": {
                             "type": "array",
-                            "items": {"type": "string"},
-                        },
-                        "phones": {
-                            "type": "array",
-                            "items": {"type": "string"},
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": False,
+                                "properties": {
+                                    "name": {"type": "string"},
+                                    "email": {"type": "string"},
+                                    "phone": {"type": "string"},
+                                },
+                                "required": ["name", "email", "phone"],
+                            },
                         },
                     },
-                    "required": ["classification", "emails", "phones"],
+                    "required": ["classification", "contacts"],
                 },
             }
         ],
@@ -245,6 +329,7 @@ def extract_contacts_with_retry(
     timeout_seconds: int,
     retries: int,
     base_delay_seconds: float,
+    known_phone: str = "",
 ) -> dict:
     website_text = fetch_website_text(
         url=site_url,
@@ -255,14 +340,13 @@ def extract_contacts_with_retry(
     if not website_text:
         return {
             "classification": "not_personal_trainer_or_pt_studio",
-            "emails": [],
-            "phones": [],
+            "contacts": [],
         }
 
     # Human-like pacing before model call.
     jitter_sleep(base_delay_seconds, base_delay_seconds + 2.0)
 
-    prompt = build_prompt(site_url=site_url, site_text=website_text)
+    prompt = build_prompt(site_url=site_url, site_text=website_text, known_phone=known_phone)
     last_error: Optional[Exception] = None
 
     for attempt in range(retries + 1):
@@ -370,6 +454,7 @@ def main() -> None:
             timeout_seconds=args.timeout_seconds,
             retries=retries,
             base_delay_seconds=base_delay,
+            known_phone="",
         )
         print(json.dumps(result, ensure_ascii=True))
         return
@@ -403,16 +488,18 @@ def main() -> None:
 
         processed_count = 0
         success_count = 0
+
+        count = 0
         for row in reader:
             processed_count += 1
             site_url = (row.get(args.url_column) or "").strip()
             contact = {
                 "classification": "not_personal_trainer_or_pt_studio",
-                "emails": [],
-                "phones": [],
+                "contacts": [],
             }
             status = "empty_url"
             if site_url:
+                csv_phone_value = (row.get("phone") or "").replace(" ", "").strip()
                 try:
                     contact = extract_contacts_with_retry(
                         endpoint=args.endpoint,
@@ -422,7 +509,23 @@ def main() -> None:
                         timeout_seconds=args.timeout_seconds,
                         retries=retries,
                         base_delay_seconds=base_delay,
+                        known_phone=csv_phone_value,
                     )
+                    # Safety filter in case model still returns the already-known phone.
+                    if csv_phone_value:
+                        csv_phone_canonical = canonical_phone(
+                            csv_phone_value, country=(row.get("country") or "").strip()
+                        )
+                        filtered_contacts = []
+                        for c in contact["contacts"]:
+                            c_phone = canonical_phone(
+                                (c.get("phone") or ""),
+                                country=(row.get("country") or "").strip(),
+                            )
+                            if c_phone and c_phone == csv_phone_canonical:
+                                continue
+                            filtered_contacts.append(c)
+                        contact["contacts"] = filtered_contacts
                     status = "ok"
                     success_count += 1
                 except Exception as e:
@@ -432,14 +535,27 @@ def main() -> None:
                     )
                     contact = {
                         "classification": "not_personal_trainer_or_pt_studio",
-                        "emails": [],
-                        "phones": [],
+                        "contacts": [],
                     }
                     status = "error"
             row["classification"] = contact["classification"]
-            row["emails"] = contact["emails"]
-            # remove whitespaces from phones
-            row["phones"] = [phone.replace(" ", "") for phone in contact["phones"]]
+            # Keep one normalized contacts array in output.
+            normalized_contacts = []
+            for c in contact["contacts"]:
+                normalized_contacts.append(
+                    {
+                        "name": (c.get("name") or "").strip(),
+                        "email": (c.get("email") or "").strip(),
+                        "phone": canonical_phone(
+                            (c.get("phone") or ""),
+                            country=(row.get("country") or "").strip(),
+                        ),
+                    }
+                )
+            row["contacts"] = normalized_contacts
+
+            source_email_value = (row.get("email") or "").strip()
+            source_phone_value = (row.get("phone") or "").replace(" ", "").strip()
 
             row.pop("city", None)
             row.pop("email", None)
@@ -447,9 +563,48 @@ def main() -> None:
             row.pop("maps_url", None)
             row.pop("scraped_at", None)
 
-            phone_value = (row.get("phone") or "").replace(" ", "").strip()
-            if phone_value and phone_value not in row["phones"]:
-                row["phones"].append(phone_value)
+            phone_value = canonical_phone(
+                source_phone_value, country=(row.get("country") or "").strip()
+            )
+            email_value = source_email_value
+            if phone_value or email_value:
+                already_present = any(
+                    canonical_phone(
+                        c.get("phone", ""), country=(row.get("country") or "").strip()
+                    )
+                    == phone_value
+                    and c.get("email", "") == email_value
+                    for c in row["contacts"]
+                )
+                merged_into_existing = False
+                if not already_present:
+                    for c in row["contacts"]:
+                        c_phone = (c.get("phone") or "").strip()
+                        c_email = (c.get("email") or "").strip()
+                        # Enrich partial contacts before adding a separate blank-name entry.
+                        if phone_value and not c_phone and (not email_value or c_email in {"", email_value}):
+                            c["phone"] = phone_value
+                            if email_value and not c_email:
+                                c["email"] = email_value
+                            merged_into_existing = True
+                            break
+                        if email_value and not c_email and (not phone_value or c_phone in {"", phone_value}):
+                            c["email"] = email_value
+                            if phone_value and not c_phone:
+                                c["phone"] = phone_value
+                            merged_into_existing = True
+                            break
+                if not already_present and not merged_into_existing:
+                    row["contacts"].append(
+                        {
+                            "name": "",
+                            "email": email_value,
+                            "phone": phone_value,
+                        }
+                    )
+            row["contacts"] = dedupe_contacts_by_phone_email(
+                row["contacts"], country=(row.get("country") or "").strip()
+            )
 
             row.pop("phone", None)
 
@@ -469,9 +624,12 @@ def main() -> None:
                     log_file,
                     f"[ROW] index={processed_count} status={status} url='{site_url}' "
                     f"classification={row['classification']} "
-                    f"emails={len(row['emails'])} phones={len(row['phones'])}",
+                    f"contacts={len(row['contacts'])}",
                 )
             jitter_sleep(base_delay, base_delay + 1.3)
+            count += 1
+            if count > 20:
+                break
             
         if wrote_any_row:
             json_out.write("\n")

@@ -371,6 +371,65 @@ docker run -d -v "$(pwd):/app" trainer-scraper --countries "New Mexico" \
 46.623034,9.569092,47.779943,12.947388
 46.384833,12.892456,49.066668,17.105713
 
+# Missouri
+39.083172,-95.762329,40.601441,-90.543823
+36.496390,-94.652710,39.138582,-89.274902
+
+# Mississippi
+33.408517,-91.241455,35.021000,-88.044434
+31.793555,-91.400757,33.399345,-88.236694
+31.015279,-91.669922,31.788886,-88.406982
+30.197366,-89.846191,31.010571,-88.404236
+
+# Tennessee
+35.007503,-90.302124,36.628754,-85.308838
+34.989504,-85.231934,36.602299,-82.359009
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Tennessee" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="35.007503,-90.302124,36.628754,-85.308838;34.989504,-85.231934,36.602299,-82.359009" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Tennessee/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Mississippi" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="33.408517,-91.241455,35.021000,-88.044434;31.793555,-91.400757,33.399345,-88.236694;31.015279,-91.669922,31.788886,-88.406982;30.197366,-89.846191,31.010571,-88.404236" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Mississippi/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Missouri" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="39.083172,-95.762329,40.601441,-90.543823;36.496390,-94.652710,39.138582,-89.274902" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Missouri/leads.csv
+
 docker run -d -v "$(pwd):/app" trainer-scraper --countries "Austria" \
   --keywords "Personal trainer" \
   --grid-mode \
@@ -520,8 +579,8 @@ Behavior:
 - `bbox`: rotate before each bbox (falls back to `query` when not in grid mode).
 
 `ssh root@178.104.56.95` Nuremberg (1)      -> California, Montana, Nevada, Utah, New Mexico*
-`ssh root@62.238.22.24` Helsinki (1)        -> Hawaii, Washington, Idaho, Arizona, Wyoming, Texas, Louisiana*
-`ssh root@178.104.184.6` Falkenstein (1)    -> Alaska, Oregon, Colorado, Oklahoma, Arkansas*
+`ssh root@62.238.22.24` Helsinki (1)        -> Hawaii, Washington, Idaho, Arizona, Wyoming, Texas, Louisiana, Missouri*
+`ssh root@178.104.184.6` Falkenstein (1)    -> Alaska, Oregon, Colorado, Oklahoma, Arkansas, Mississippi*
 `ssh root@178.104.199.217` Nuremberg (2)    -> Canada, Kansas*
 `ssh root@91.99.216.183` Falkenstein (2)    -> Australia, Switzerland, Nebraska*
 `ssh root@62.238.3.134` Helsinki (2)        -> New Zealand, Denmark*
@@ -529,7 +588,7 @@ Behavior:
 `ssh root@89.167.14.174` Helsinki (3)       -> Ireland, Italy, Belgium, North Dakota*
 `ssh root@46.224.188.3` Nuremberg (4)       -> Germany, Sweden, Minnesota*
 `ssh root@62.238.8.11` Helsinki (4)         -> Spain, Norway, Iowa*
-`ssh root@178.104.201.243` Nuremberg (5)    -> France, Austria*
+`ssh root@178.104.201.243` Nuremberg (5)    -> France, Austria
 
 `sudo apt update`
 `sudo apt install -y git`
@@ -597,3 +656,40 @@ scp root@178.104.56.95:/root/stepup-scraping/results/California/leads_bbox_1.csv
   --max-results-per-query 120 \
   --skip-email-crawl \
   --output results/Alaska/leads.csv`
+
+`={
+leads_bbox_1!A1:Z1;
+SORTN({
+FILTER(leads_bbox_1!A2:Z;leads_bbox_1!A2:A<>"");
+FILTER(leads_bbox_2!A2:Z;leads_bbox_2!A2:A<>"");
+FILTER(leads_bbox_3!A2:Z;leads_bbox_3!A2:A<>"");
+FILTER(leads_bbox_4!A2:Z;leads_bbox_4!A2:A<>"");
+FILTER(leads_bbox_5!A2:Z;leads_bbox_5!A2:A<>"");
+FILTER(leads_bbox_6!A2:Z;leads_bbox_6!A2:A<>"");
+FILTER(leads_bbox_7!A2:Z;leads_bbox_7!A2:A<>"");
+FILTER(leads_bbox_8!A2:Z;leads_bbox_8!A2:A<>"");
+FILTER(leads_bbox_9!A2:Z;leads_bbox_9!A2:A<>"");
+FILTER(leads_bbox_10!A2:Z;leads_bbox_10!A2:A<>"");
+FILTER(leads_bbox_11!A2:Z;leads_bbox_11!A2:A<>"");
+FILTER(leads_bbox_12!A2:Z;leads_bbox_12!A2:A<>"");
+FILTER(leads_bbox_13!A2:Z;leads_bbox_13!A2:A<>"");
+FILTER(leads_bbox_14!A2:Z;leads_bbox_14!A2:A<>"");
+FILTER(leads_bbox_15!A2:Z;leads_bbox_15!A2:A<>"");
+FILTER(leads_bbox_16!A2:Z;leads_bbox_16!A2:A<>"");
+FILTER(leads_bbox_17!A2:Z;leads_bbox_17!A2:A<>"");
+FILTER(leads_bbox_18!A2:Z;leads_bbox_18!A2:A<>"");
+FILTER(leads_bbox_19!A2:Z;leads_bbox_19!A2:A<>"");
+FILTER(leads_bbox_20!A2:Z;leads_bbox_20!A2:A<>"");
+FILTER(leads_bbox_21!A2:Z;leads_bbox_21!A2:A<>"");
+FILTER(leads_bbox_22!A2:Z;leads_bbox_22!A2:A<>"");
+FILTER(leads_bbox_23!A2:Z;leads_bbox_23!A2:A<>"");
+FILTER(leads_bbox_24!A2:Z;leads_bbox_24!A2:A<>"");
+FILTER(leads_bbox_25!A2:Z;leads_bbox_25!A2:A<>"");
+FILTER(leads_bbox_26!A2:Z;leads_bbox_26!A2:A<>"")
+};
+999999;
+2;
+4;
+VERO
+)
+}`
