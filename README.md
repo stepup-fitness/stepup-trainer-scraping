@@ -385,6 +385,47 @@ docker run -d -v "$(pwd):/app" trainer-scraper --countries "New Mexico" \
 35.007503,-90.302124,36.628754,-85.308838
 34.989504,-85.231934,36.602299,-82.359009
 
+# Alabama
+33.477272,-88.264160,34.994004,-85.297852
+31.882222,-88.516846,33.449777,-85.006714
+31.001155,-88.472900,31.891551,-84.984741
+30.306503,-88.417969,31.015279,-87.390747
+
+# Kentucky
+36.505221,-89.604492,37.466139,-87.885132
+36.584658,-88.077393,37.974515,-81.958008
+37.931200,-86.940308,39.142842,-82.518311
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Kentucky" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="36.505221,-89.604492,37.466139,-87.885132;36.584658,-88.077393,37.974515,-81.958008;37.931200,-86.940308,39.142842,-82.518311" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Kentucky/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Alabama" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="33.477272,-88.264160,34.994004,-85.297852;31.882222,-88.516846,33.449777,-85.006714;31.001155,-88.472900,31.891551,-84.984741;30.306503,-88.417969,31.015279,-87.390747" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Alabama/leads.csv
+
 docker run -d -v "$(pwd):/app" trainer-scraper --countries "Tennessee" \
   --keywords "Personal trainer" \
   --grid-mode \
@@ -581,14 +622,14 @@ Behavior:
 `ssh root@178.104.56.95` Nuremberg (1)      -> California, Montana, Nevada, Utah, New Mexico*
 `ssh root@62.238.22.24` Helsinki (1)        -> Hawaii, Washington, Idaho, Arizona, Wyoming, Texas, Louisiana, Missouri*
 `ssh root@178.104.184.6` Falkenstein (1)    -> Alaska, Oregon, Colorado, Oklahoma, Arkansas, Mississippi*
-`ssh root@178.104.199.217` Nuremberg (2)    -> Canada, Kansas*
-`ssh root@91.99.216.183` Falkenstein (2)    -> Australia, Switzerland, Nebraska*
-`ssh root@62.238.3.134` Helsinki (2)        -> New Zealand, Denmark*
+`ssh root@178.104.199.217` Nuremberg (2)    -> Canada, Kansas, Tennessee*
+`ssh root@91.99.216.183` Falkenstein (2)    -> Australia, Switzerland, Nebraska, Alabama*
+`ssh root@62.238.3.134` Helsinki (2)        -> New Zealand, Denmark, Kentucky*
 `ssh root@94.130.150.188` Nuremberg (3)     -> United Kingdom, Netherlands, Finland, South Dakota*
 `ssh root@89.167.14.174` Helsinki (3)       -> Ireland, Italy, Belgium, North Dakota*
 `ssh root@46.224.188.3` Nuremberg (4)       -> Germany, Sweden, Minnesota*
 `ssh root@62.238.8.11` Helsinki (4)         -> Spain, Norway, Iowa*
-`ssh root@178.104.201.243` Nuremberg (5)    -> France, Austria
+`ssh root@178.104.201.243` Nuremberg (5)    -> France, Austria, [Italy]*
 
 `sudo apt update`
 `sudo apt install -y git`
