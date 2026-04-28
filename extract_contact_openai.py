@@ -82,6 +82,9 @@ def build_prompt(site_url: str, site_text: str) -> str:
         "You extract contact details from webpage text.\n"
         "Call the provided function with extracted values.\n"
         "Rules:\n"
+        "- Classify the site as personal trainer/PT studio or not.\n"
+        "- Use classification='not_personal_trainer_or_pt_studio' when the site is not a personal trainer or PT studio website.\n"
+        "- If classification='not_personal_trainer_or_pt_studio', emails and phones must both be empty lists.\n"
         "- Return all plausible business emails and phones.\n"
         "- If no email exists, return an empty emails list.\n"
         "- If no phone exists, return an empty phones list.\n"
@@ -128,8 +131,19 @@ def normalize_contact_object(payload: dict) -> dict:
 
     emails = normalize_str_list(payload.get("emails"))
     phones = normalize_str_list(payload.get("phones"))
+    classification = str(payload.get("classification", "")).strip()
+    allowed = {
+        "personal_trainer_or_pt_studio",
+        "not_personal_trainer_or_pt_studio",
+    }
+    if classification not in allowed:
+        classification = "not_personal_trainer_or_pt_studio"
+    if classification == "not_personal_trainer_or_pt_studio":
+        emails = []
+        phones = []
 
     return {
+        "classification": classification,
         "emails": emails,
         "phones": phones,
     }
@@ -185,6 +199,13 @@ def call_openai_responses_api(
                     "type": "object",
                     "additionalProperties": False,
                     "properties": {
+                        "classification": {
+                            "type": "string",
+                            "enum": [
+                                "personal_trainer_or_pt_studio",
+                                "not_personal_trainer_or_pt_studio",
+                            ],
+                        },
                         "emails": {
                             "type": "array",
                             "items": {"type": "string"},
@@ -194,7 +215,7 @@ def call_openai_responses_api(
                             "items": {"type": "string"},
                         },
                     },
-                    "required": ["emails", "phones"],
+                    "required": ["classification", "emails", "phones"],
                 },
             }
         ],
@@ -232,7 +253,11 @@ def extract_contacts_with_retry(
     )
 
     if not website_text:
-        return {"emails": [], "phones": []}
+        return {
+            "classification": "not_personal_trainer_or_pt_studio",
+            "emails": [],
+            "phones": [],
+        }
 
     # Human-like pacing before model call.
     jitter_sleep(base_delay_seconds, base_delay_seconds + 2.0)
@@ -381,7 +406,11 @@ def main() -> None:
         for row in reader:
             processed_count += 1
             site_url = (row.get(args.url_column) or "").strip()
-            contact = {"emails": [], "phones": []}
+            contact = {
+                "classification": "not_personal_trainer_or_pt_studio",
+                "emails": [],
+                "phones": [],
+            }
             status = "empty_url"
             if site_url:
                 try:
@@ -401,34 +430,47 @@ def main() -> None:
                         log_file,
                         f"[ERROR] index={processed_count} status={status} url='{site_url}' error='{e}'",
                     )
-                    contact = {"emails": [], "phones": []}
+                    contact = {
+                        "classification": "not_personal_trainer_or_pt_studio",
+                        "emails": [],
+                        "phones": [],
+                    }
                     status = "error"
+            row["classification"] = contact["classification"]
             row["emails"] = contact["emails"]
             # remove whitespaces from phones
             row["phones"] = [phone.replace(" ", "") for phone in contact["phones"]]
 
-            row.pop("country", None)
             row.pop("city", None)
             row.pop("email", None)
             row.pop("address", None)
             row.pop("maps_url", None)
             row.pop("scraped_at", None)
 
-            if row["phone"] and not row["phone"].replace(" ", "").strip() in contact["phones"]:
-                row["phones"].append(row["phone"])
+            phone_value = (row.get("phone") or "").replace(" ", "").strip()
+            if phone_value and phone_value not in row["phones"]:
+                row["phones"].append(phone_value)
 
             row.pop("phone", None)
 
-            if wrote_any_row:
-                json_out.write(",\n")
-            json_out.write(json.dumps(row, ensure_ascii=True, indent=2))
-            json_out.flush()
-            wrote_any_row = True
-            log_message(
-                log_file,
-                f"[ROW] index={processed_count} status={status} url='{site_url}' "
-                f"emails={len(row['emails'])} phones={len(row['phones'])}",
-            )
+            if row["classification"] == "not_personal_trainer_or_pt_studio":
+                log_message(
+                    log_file,
+                    f"[SKIP] index={processed_count} status={status} url='{site_url}' "
+                    f"classification={row['classification']}",
+                )
+            else:
+                if wrote_any_row:
+                    json_out.write(",\n")
+                json_out.write(json.dumps(row, ensure_ascii=True, indent=2))
+                json_out.flush()
+                wrote_any_row = True
+                log_message(
+                    log_file,
+                    f"[ROW] index={processed_count} status={status} url='{site_url}' "
+                    f"classification={row['classification']} "
+                    f"emails={len(row['emails'])} phones={len(row['phones'])}",
+                )
             jitter_sleep(base_delay, base_delay + 1.3)
             
         if wrote_any_row:
