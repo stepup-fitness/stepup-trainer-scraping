@@ -14,6 +14,19 @@ from urllib import error, parse, request
 
 DEFAULT_ENDPOINT = "https://stepup.openai.azure.com/openai/v1"
 DEFAULT_DEPLOYMENT = "gpt-4.1-mini"
+SOCIAL_HOST_BLOCKLIST = {
+    "facebook.com",
+    "www.facebook.com",
+    "m.facebook.com",
+    "instagram.com",
+    "www.instagram.com",
+    "linkedin.com",
+    "www.linkedin.com",
+    "x.com",
+    "www.x.com",
+    "twitter.com",
+    "www.twitter.com",
+}
 
 
 class HTMLTextExtractor(HTMLParser):
@@ -38,6 +51,23 @@ class HTMLTextExtractor(HTMLParser):
 
     def text(self) -> str:
         return " ".join(self._parts)
+
+
+class HTMLLinkExtractor(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.links: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs) -> None:
+        if tag != "a":
+            return
+        href = ""
+        for key, value in attrs:
+            if key == "href" and value:
+                href = str(value).strip()
+                break
+        if href:
+            self.links.append(href)
 
 
 def jitter_sleep(min_seconds: float, max_seconds: float) -> None:
@@ -77,7 +107,136 @@ def fetch_website_text(url: str, timeout_seconds: int, max_chars: int) -> str:
     return text[:max_chars]
 
 
-def build_prompt(site_url: str, site_text: str, known_phone: str = "") -> str:
+def normalize_site_url(url: str) -> str:
+    cleaned = (url or "").strip()
+    if not cleaned:
+        return ""
+    parsed = parse.urlparse(cleaned)
+    if not parsed.scheme:
+        cleaned = f"https://{cleaned}"
+        parsed = parse.urlparse(cleaned)
+    if parsed.scheme not in {"http", "https"}:
+        return ""
+    return cleaned
+
+
+def is_blocked_social_host(url: str) -> bool:
+    host = parse.urlparse(url).netloc.lower()
+    return host in SOCIAL_HOST_BLOCKLIST
+
+
+def fetch_website_html(url: str, timeout_seconds: int) -> str:
+    normalized_url = normalize_site_url(url)
+    if not normalized_url:
+        raise ValueError(f"Invalid website URL: '{url}'")
+    req = request.Request(
+        normalized_url,
+        headers={
+            "User-Agent": (
+                "Mozilla/5.0 (X11; Linux x86_64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/125.0.0.0 Safari/537.36"
+            ),
+            "Accept-Language": "en-US,en;q=0.9",
+        },
+    )
+    with request.urlopen(req, timeout=timeout_seconds) as resp:
+        raw = resp.read()
+    return raw.decode("utf-8", errors="replace")
+
+
+def normalize_internal_link(base_url: str, href: str) -> str:
+    normalized = parse.urljoin(base_url, href.strip())
+    parsed_base = parse.urlparse(base_url)
+    parsed_link = parse.urlparse(normalized)
+    if parsed_link.scheme not in {"http", "https"}:
+        return ""
+    if parsed_link.netloc and parsed_link.netloc != parsed_base.netloc:
+        return ""
+    clean = parsed_link._replace(fragment="")
+    return parse.urlunparse(clean)
+
+
+def candidate_internal_links(base_url: str, html: str, limit: int = 8) -> list[str]:
+    extractor = HTMLLinkExtractor()
+    extractor.feed(html)
+    preferred_tokens = (
+        "contact",
+        "about",
+        "impressum",
+        "team",
+        "staff",
+        "coach",
+        "trainer",
+        "kontakt",
+        "contatti",
+    )
+    ranked: list[str] = []
+    seen: set[str] = set()
+    for href in extractor.links:
+        link = normalize_internal_link(base_url, href)
+        if not link or link in seen:
+            continue
+        seen.add(link)
+        link_lc = link.lower()
+        if any(token in link_lc for token in preferred_tokens):
+            ranked.append(link)
+        if len(ranked) >= limit:
+            break
+    return ranked
+
+
+def html_to_clean_text(html: str, max_chars: int) -> str:
+    parser = HTMLTextExtractor()
+    parser.feed(html)
+    text = unescape(parser.text())
+    text = re.sub(r"\s+", " ", text).strip()
+    return text[:max_chars]
+
+
+def fetch_website_text_with_navigation(
+    url: str, timeout_seconds: int, max_chars: int
+) -> tuple[str, list[str]]:
+    normalized_url = normalize_site_url(url)
+    if not normalized_url or is_blocked_social_host(normalized_url):
+        return "", []
+
+    try:
+        home_html = fetch_website_html(url=normalized_url, timeout_seconds=timeout_seconds)
+    except (error.HTTPError, error.URLError, TimeoutError, ValueError):
+        return "", []
+
+    chunks: list[str] = []
+    visited_urls: list[str] = [normalized_url]
+    home_text = html_to_clean_text(home_html, max_chars=max_chars)
+    if home_text:
+        chunks.append(f"[PAGE] {normalized_url}\n{home_text}")
+
+    # If the homepage lacks clear contacts, crawl a few likely internal pages.
+    needs_navigation = not re.search(
+        r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|\+?\d[\d\s().-]{6,}",
+        home_text,
+    )
+    if needs_navigation:
+        for link in candidate_internal_links(normalized_url, home_html, limit=8):
+            try:
+                linked_html = fetch_website_html(url=link, timeout_seconds=timeout_seconds)
+            except (error.HTTPError, error.URLError, TimeoutError, ValueError):
+                continue
+            visited_urls.append(link)
+            linked_text = html_to_clean_text(linked_html, max_chars=max_chars // 2)
+            if linked_text:
+                chunks.append(f"[PAGE] {link}\n{linked_text}")
+            if sum(len(chunk) for chunk in chunks) >= max_chars:
+                break
+
+    merged = "\n\n".join(chunks)
+    return merged[:max_chars], visited_urls
+
+
+def build_prompt(
+    site_url: str, site_text: str, source_urls: list[str], known_phone: str = ""
+) -> str:
     known_phone_clean = known_phone.replace(" ", "").strip()
     known_phone_block = (
         f"Known CSV phone (already stored): {known_phone_clean}\n"
@@ -89,6 +248,7 @@ def build_prompt(site_url: str, site_text: str, known_phone: str = "") -> str:
         "Call the provided function with extracted values.\n"
         "Rules:\n"
         "- Classify the site as personal trainer/PT studio or not.\n"
+        "- Exclude gym chains/franchise fitness brands (e.g. large multi-location commercial gyms); classify them as not_personal_trainer_or_pt_studio.\n"
         "- Use classification='not_personal_trainer_or_pt_studio' when the site is not a personal trainer or PT studio website.\n"
         "- If classification='not_personal_trainer_or_pt_studio', contacts must be an empty list.\n"
         "- Return contacts as: contacts=[{\"name\":\"\", \"email\":\"\", \"phone\":\"\"}].\n"
@@ -101,6 +261,7 @@ def build_prompt(site_url: str, site_text: str, known_phone: str = "") -> str:
         "- Deduplicate equivalent contacts.\n"
         "- Return normalized values when possible.\n\n"
         f"Website URL: {site_url}\n"
+        f"Visited pages (same website): {', '.join(source_urls)}\n"
         f"{known_phone_block}"
         f"Website visible text:\n{site_text}"
     )
@@ -139,6 +300,13 @@ def canonical_phone(phone: str, country: str = "") -> str:
         if digits.startswith("41"):
             return f"+{digits}"
     return digits
+
+
+def looks_like_mobile_or_valid_phone(phone: str) -> bool:
+    normalized = canonical_phone(phone)
+    digits_only = re.sub(r"\D", "", normalized)
+    # Keep rows for plausible phone numbers even when website parsing fails.
+    return len(digits_only) >= 8
 
 
 def dedupe_contacts_by_phone_email(contacts: list[dict], country: str = "") -> list[dict]:
@@ -331,7 +499,7 @@ def extract_contacts_with_retry(
     base_delay_seconds: float,
     known_phone: str = "",
 ) -> dict:
-    website_text = fetch_website_text(
+    website_text, source_urls = fetch_website_text_with_navigation(
         url=site_url,
         timeout_seconds=timeout_seconds,
         max_chars=20_000,
@@ -346,7 +514,12 @@ def extract_contacts_with_retry(
     # Human-like pacing before model call.
     jitter_sleep(base_delay_seconds, base_delay_seconds + 2.0)
 
-    prompt = build_prompt(site_url=site_url, site_text=website_text, known_phone=known_phone)
+    prompt = build_prompt(
+        site_url=site_url,
+        site_text=website_text,
+        source_urls=source_urls,
+        known_phone=known_phone,
+    )
     last_error: Optional[Exception] = None
 
     for attempt in range(retries + 1):
@@ -488,6 +661,7 @@ def main() -> None:
 
         processed_count = 0
         success_count = 0
+        count = 0
 
         for row in reader:
             processed_count += 1
@@ -607,7 +781,13 @@ def main() -> None:
 
             row.pop("phone", None)
 
-            if row["classification"] == "not_personal_trainer_or_pt_studio":
+            keep_due_to_phone = bool(phone_value) and looks_like_mobile_or_valid_phone(
+                phone_value
+            )
+            if (
+                row["classification"] == "not_personal_trainer_or_pt_studio"
+                and not keep_due_to_phone
+            ):
                 log_message(
                     log_file,
                     f"[SKIP] index={processed_count} status={status} url='{site_url}' "
@@ -626,7 +806,9 @@ def main() -> None:
                     f"contacts={len(row['contacts'])}",
                 )
             jitter_sleep(base_delay, base_delay + 1.3)
-            
+
+            if count >= 10: 
+                break
         if wrote_any_row:
             json_out.write("\n")
         json_out.write("]\n")

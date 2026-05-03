@@ -396,6 +396,389 @@ docker run -d -v "$(pwd):/app" trainer-scraper --countries "New Mexico" \
 36.584658,-88.077393,37.974515,-81.958008
 37.931200,-86.940308,39.142842,-82.518311
 
+# Illinois
+40.826280,-91.082153,42.528796,-87.544556
+38.483695,-91.571045,40.847060,-87.522583
+37.002553,-90.450439,38.466493,-87.670898
+
+# Wisconsin
+44.746733,-92.801514,46.912751,-87.583008
+42.512602,-92.878418,44.645208,-87.368774
+
+# Indiana
+40.538852,-87.528076,41.763117,-84.792480
+39.355538,-87.544556,40.534677,-84.797974
+37.775057,-88.104858,39.427707,-84.814453
+
+# Michigan
+41.746726,-86.879883,45.790509,-82.441406
+
+# Ohio
+38.419166,-84.814453,41.730330,-80.496826
+
+# Florida
+29.680894,-87.626953,31.001155,-84.992981
+29.707139,-84.935303,30.883369,-81.238403
+25.085599,-83.594971,29.850173,-79.815674
+
+# Georgia
+32.930318,-85.610962,34.985003,-81.930542
+30.675715,-85.220947,32.930318,-80.980225
+
+# South Carolina
+32.063956,-83.342285,35.236646,-78.579712
+
+# North Carolina
+35.003003,-84.320068,36.553775,-75.629883
+33.815666,-79.694824,34.998504,-76.228638
+
+# Virginia
+36.582452,-83.715820,37.468319,-80.406189
+36.549362,-80.414429,38.771216,-75.706787
+
+# West Virginia
+38.065392,-81.595459,40.204050,-78.717041
+
+# Maryland
+39.155622,-79.480591,39.719863,-77.486572
+38.220920,-77.497559,39.728313,-75.734253
+
+# Delaware
+38.436380,-75.800171,39.825413,-75.047607
+
+# New Jersey
+38.929502,-75.673828,41.306698,-73.850098
+
+# Pennsylvania
+39.724089,-80.518799,42.138968,-74.772949
+
+# Connecticut
+41.021355,-73.591919,42.028894,-71.806641
+
+# New York
+43.365126,-76.607666,45.011419,-73.267822
+42.016652,-79.639893,43.317185,-73.278809
+41.228249,-75.421143,42.016652,-73.465576
+40.497092,-74.179688,41.244772,-71.696777
+
+# Rhode Island
+41.325264,-71.801147,42.016652,-71.174927
+
+# Massachusetts
+42.020733,-73.440857,42.751046,-70.587158
+41.512691,-71.383667,42.030934,-69.658813
+
+# New Hampshire
+42.714732,-72.493286,45.394593,-70.680542
+
+# Vermont
+42.722804,-73.306274,45.015302,-71.493530
+
+# Maine
+43.109004,-71.081543,45.352145,-66.928711
+45.371443,-70.642090,47.446665,-67.703247
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Maine" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="43.109004,-71.081543,45.352145,-66.928711;45.371443,-70.642090,47.446665,-67.703247" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Maine/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Vermont" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="42.722804,-73.306274,45.015302,-71.493530" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Vermont/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "New Hampshire" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="42.714732,-72.493286,45.394593,-70.680542" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/New_Hampshire/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Massachusetts" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="42.020733,-73.440857,42.751046,-70.587158;41.512691,-71.383667,42.030934,-69.658813" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Massachusetts/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Rhode Island" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="41.325264,-71.801147,42.016652,-71.174927" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Rhode_Island/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "New York" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="43.365126,-76.607666,45.011419,-73.267822;42.016652,-79.639893,43.317185,-73.278809;41.228249,-75.421143,42.016652,-73.465576;40.497092,-74.179688,41.244772,-71.696777" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/New_York/leads.csv
+
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Connecticut" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="41.021355,-73.591919,42.028894,-71.806641" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Connecticut/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Pennsylvania" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="39.724089,-80.518799,42.138968,-74.772949" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Pennsylvania/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "New Jersey" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="38.929502,-75.673828,41.306698,-73.850098" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/New_Jersey/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Delaware" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="38.436380,-75.800171,39.825413,-75.047607" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Delaware/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Maryland" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="39.155622,-79.480591,39.719863,-77.486572;38.220920,-77.497559,39.728313,-75.734253" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Maryland/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Maryland" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="38.065392,-81.595459,40.204050,-78.717041" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/West_Virginia/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Virginia" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="36.582452,-83.715820,37.468319,-80.406189;36.549362,-80.414429,38.771216,-75.706787" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Virginia/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Georgia" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="32.930318,-85.610962,34.985003,-81.930542;30.675715,-85.220947,32.930318,-80.980225" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Georgia/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Florida" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="29.680894,-87.626953,31.001155,-84.992981;29.707139,-84.935303,30.883369,-81.238403;25.085599,-83.594971,29.850173,-79.815674" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Florida/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Ohio" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="38.419166,-84.814453,41.730330,-80.496826" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Ohio/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Michigan" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="41.746726,-86.879883,45.790509,-82.441406" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Michigan/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Indiana" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="40.538852,-87.528076,41.763117,-84.792480;39.355538,-87.544556,40.534677,-84.797974;37.775057,-88.104858,39.427707,-84.814453" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Indiana/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Wisconsin" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="44.746733,-92.801514,46.912751,-87.583008;42.512602,-92.878418,44.645208,-87.368774" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Wisconsin/leads.csv
+
+docker run -d -v "$(pwd):/app" trainer-scraper --countries "Illinois" \
+  --keywords "Personal trainer" \
+  --grid-mode \
+  --bboxes="40.826280,-91.082153,42.528796,-87.544556;38.483695,-91.571045,40.847060,-87.522583;37.002553,-90.450439,38.466493,-87.670898" \
+  --initial-cell-km 15 \
+  --min-cell-km 2 \
+  --dead-zone-max 20 \
+  --ok-zone-max 60 \
+  --maps-cap 120 \
+  --min-new-uniques-per-child 10 \
+  --max-grid-depth 3 \
+  --max-results-per-query 120 \
+  --skip-email-crawl \
+  --output results/Illinois/leads.csv
+
 docker run -d -v "$(pwd):/app" trainer-scraper --countries "Kentucky" \
   --keywords "Personal trainer" \
   --grid-mode \
@@ -619,17 +1002,18 @@ Behavior:
 - `query`: rotate before each query.
 - `bbox`: rotate before each bbox (falls back to `query` when not in grid mode).
 
-`ssh root@178.104.56.95` Nuremberg (1)      -> California, Montana, Nevada, Utah, New Mexico*
-`ssh root@62.238.22.24` Helsinki (1)        -> Hawaii, Washington, Idaho, Arizona, Wyoming, Texas, Louisiana, Missouri*
-`ssh root@178.104.184.6` Falkenstein (1)    -> Alaska, Oregon, Colorado, Oklahoma, Arkansas, Mississippi*
-`ssh root@178.104.199.217` Nuremberg (2)    -> Canada, Kansas, Tennessee*
-`ssh root@91.99.216.183` Falkenstein (2)    -> Australia, Switzerland, Nebraska, Alabama*
-`ssh root@62.238.3.134` Helsinki (2)        -> New Zealand, Denmark, Kentucky*
-`ssh root@94.130.150.188` Nuremberg (3)     -> United Kingdom, Netherlands, Finland, South Dakota*
-`ssh root@89.167.14.174` Helsinki (3)       -> Ireland, Italy, Belgium, North Dakota*
-`ssh root@46.224.188.3` Nuremberg (4)       -> Germany, Sweden, Minnesota*
-`ssh root@62.238.8.11` Helsinki (4)         -> Spain, Norway, Iowa*
-`ssh root@178.104.201.243` Nuremberg (5)    -> France, Austria, [Italy]*
+`ssh root@178.104.56.95` Nuremberg (1)      -> California, Montana, Nevada, Utah, New Mexico, Indiana, Maryland, Maine
+`ssh root@62.238.22.24` Helsinki (1)        -> Hawaii, Washington, Idaho, Arizona, Wyoming, Texas, Louisiana, Missouri, Michigan, Delaware
+`ssh root@178.104.184.6` Falkenstein (1)    -> Alaska, Oregon, Colorado, Oklahoma, Arkansas, Mississippi, Ohio, New Jersey
+`ssh root@178.104.199.217` Nuremberg (2)    -> Canada, Kansas, Tennessee, Florida, Pennsylvania
+`ssh root@91.99.216.183` Falkenstein (2)    -> Australia, Switzerland, Nebraska, Alabama, Georgia, Connecticut
+`ssh root@62.238.3.134` Helsinki (2)        -> New Zealand, Denmark, Kentucky, South Carolina, New York
+`ssh root@94.130.150.188` Nuremberg (3)     -> United Kingdom, Netherlands, Finland, South Dakota, North Carolina, Rhode Island
+`ssh root@89.167.14.174` Helsinki (3)       -> Ireland, Italy, Belgium, North Dakota, Virginia, Massachusetts
+`ssh root@46.224.188.3` Nuremberg (4)       -> Germany, Sweden, Minnesota, Illinois, West Virginia, New Hampshire
+`ssh root@62.238.8.11` Helsinki (4)         -> Spain, Norway, Iowa, Wisconsin, Vermont
+------------------------------------------------------------------------------
+`ssh root@178.104.201.243` Nuremberg (5)    -> France, Austria
 
 `sudo apt update`
 `sudo apt install -y git`
